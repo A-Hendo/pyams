@@ -33,7 +33,7 @@ PYAMS aims for a "one-command" setup. When you run `pyams install`, it handles:
 - **System Setup**:
   - Detects PUID/PGID and automatically calculates Podman socket paths.
   - Creates the entire media directory structure (`movies`, `tvshows`, `downloads`, etc.) with correct permissions.
-  - Automatically installs Podman and Podman-Compose (Linux) or prompts for Podman Desktop (Windows).
+  - Automatically installs Podman and Podman-Compose (uses uv) if not installed already.
 - **Jellyfin**:
   - Sets up the initial server configuration (Language/Country).
   - Creates the default `admin` user (password: `changeme`).
@@ -60,29 +60,9 @@ PYAMS aims for a "one-command" setup. When you run `pyams install`, it handles:
   - Handles OpenVPN and WireGuard configuration, including Port Forwarding.
   - Generates unique, secure random API keys for all services during installation.
 
-## Installation
+# Installation
 
-### Quick Install (Recommended)
-
-**Linux:**
-
-```bash
-curl -sSL https://raw.githubusercontent.com/a-hendo/pyams/main/install.sh | bash
-```
-
-**Windows (PowerShell):**
-
-```powershell
-irm https://raw.githubusercontent.com/a-hendo/pyams/main/install.ps1 | iex
-```
-
-### Standalone Binaries
-
-If you prefer manual installation, download the latest pre-compiled binary from the [Releases](https://github.com/a-hendo/pyams/releases) page.
-
-### Using uv
-
-If you have [uv](https://github.com/astral-sh/uv) installed:
+To install PYAMS using [uv](https://github.com/astral-sh/uv) (see [installation guide](https://docs.astral.sh/uv/getting-started/installation/)):
 
 ```bash
 uv tool install git+https://github.com/a-hendo/pyams.git
@@ -143,12 +123,6 @@ The wizard will guide you through:
   - `pyams restore pyams_backup_20260402.tar.gz`
 - `pyams remove`: Remove all containers and networks (your data remains safe).
 - `pyams destroy`: **Full Cleanup**. Removes containers, volumes, and deletes local configuration and media folders. (Requires double confirmation).
-
-## Requirements
-
-- **Linux**: Podman and Podman-Compose.
-- **Windows**: Podman Desktop.
-- **Python**: 3.13 or higher.
 
 ## Contributing
 
