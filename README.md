@@ -62,27 +62,7 @@ PYAMS aims for a "one-command" setup. When you run `pyams install`, it handles:
 
 ## Installation
 
-### Quick Install (Recommended)
-
-**Linux:**
-
-```bash
-curl -sSL https://raw.githubusercontent.com/a-hendo/pyams/main/install.sh | bash
-```
-
-**Windows (PowerShell):**
-
-```powershell
-irm https://raw.githubusercontent.com/a-hendo/pyams/main/install.ps1 | iex
-```
-
-### Standalone Binaries
-
-If you prefer manual installation, download the latest pre-compiled binary from the [Releases](https://github.com/a-hendo/pyams/releases) page.
-
-### Using uv
-
-If you have [uv](https://github.com/astral-sh/uv) installed:
+To install PYAMS using [uv](https://github.com/astral-sh/uv) (see [installation guide](https://docs.astral.sh/uv/getting-started/installation/)):
 
 ```bash
 uv tool install git+https://github.com/a-hendo/pyams.git

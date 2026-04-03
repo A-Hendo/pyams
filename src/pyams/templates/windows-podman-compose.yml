@@ -1,0 +1,167 @@
+services:
+  # jellyfin is used to serve your media to the client devices
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin
+    container_name: jellyfin
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - VERSION=docker
+    volumes:
+      - ./media:/data
+      - ./config/jellyfin:/config
+      - ./scripts/jellyfin-init.sh:/custom-cont-init.d/01-pyams-init.sh
+    ports:
+      - 8096:8096
+    restart: unless-stopped
+
+  # qBitorrent is used to download torrents
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - WEBUI_PORT=8081
+      - USE_VPN=${USE_VPN:-false}
+    volumes:
+      - ./media:/data
+      - ./config/qbittorrent:/config
+      - ./scripts/qbittorrent-init.sh:/custom-cont-init.d/01-pyams-init.sh:ro
+    restart: unless-stopped
+    ports:
+      - 8081:8081
+
+  # SABnzbd is used to download from usenet
+  sabnzbd:
+    image: lscr.io/linuxserver/sabnzbd:latest
+    container_name: sabnzbd
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ./media:/data
+      - ./config/sabnzbd:/config
+    ports:
+      - 8080:8080
+    restart: unless-stopped
+
+  # Sonarr is used to query, add downloads to the download queue and index TV shows
+  sonarr:
+    image: lscr.io/linuxserver/sonarr
+    container_name: sonarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - API_KEY=${SONARR_API_KEY}
+    volumes:
+      - ./media:/data
+      - ./config/sonarr:/config
+      - ./scripts/sonarr-init.sh:/custom-cont-init.d/01-pyams-init.sh:ro
+    ports:
+      - 8989:8989
+    restart: unless-stopped
+
+  # Radarr is used to query, add downloads to the download queue and index Movies
+  radarr:
+    image: lscr.io/linuxserver/radarr
+    container_name: radarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - API_KEY=${RADARR_API_KEY}
+    volumes:
+      - ./media:/data
+      - ./config/radarr:/config
+      - ./scripts/radarr-init.sh:/custom-cont-init.d/01-pyams-init.sh:ro
+    ports:
+      - 7878:7878
+    restart: unless-stopped
+
+  # Prowlarr is our torrent indexer/searcher.
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr
+    container_name: prowlarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - API_KEY=${PROWLARR_API_KEY}
+      - SONARR_API_KEY=${SONARR_API_KEY}
+      - RADARR_API_KEY=${RADARR_API_KEY}
+    volumes:
+      - ./config/prowlarr:/config
+      - ./scripts/prowlarr-init.sh:/custom-cont-init.d/01-pyams-init.sh:ro
+    ports:
+      - 9696:9696
+    restart: unless-stopped
+
+  # Bazarr is used to download subtitles for your media
+  bazarr:
+    image: lscr.io/linuxserver/bazarr
+    container_name: bazarr
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - BAZARR_API_KEY=${BAZARR_API_KEY}
+      - SONARR_API_KEY=${SONARR_API_KEY}
+      - RADARR_API_KEY=${RADARR_API_KEY}
+    volumes:
+      - ./media:/data
+      - ./config/bazarr:/config
+      - ./scripts/bazarr-init.sh:/custom-cont-init.d/01-pyams-init.sh:ro
+    ports:
+      - 6767:6767
+    restart: unless-stopped
+
+  # Gluetun is our VPN
+  gluetun:
+    image: docker.io/qmcgaw/gluetun:latest
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - 8888:8888/tcp # HTTP proxy
+      - 8388:8388/tcp # Shadowsocks
+      - 8388:8388/udp # Shadowsocks
+      - 8003:8000/tcp # Admin
+    environment:
+      - VPN_SERVICE_PROVIDER=${VPN_SERVICE}
+      - VPN_TYPE=${VPN_TYPE}
+      - OPENVPN_USER=${VPN_USER}
+      - OPENVPN_PASSWORD=${VPN_PASSWORD}
+      - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY}
+      - VPN_PORT_FORWARDING=${VPN_PORT_FORWARDING}
+      - PORT_FORWARDING=${PORT_FORWARDING}
+      - VPN_PORT_FORWARDING_PROVIDER=${VPN_PORT_FORWARDING_PROVIDER}
+    volumes:
+      - ./config/gluetun:/gluetun
+    restart: unless-stopped
+
+  # flaresolverr solves CAPTCHA's for indexers
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_HTML=${LOG_HTML:-false}
+      - CAPTCHA_SOLVER=${CAPTCHA_SOLVER:-none}
+      - TZ=${TZ}
+    ports:
+      - "8191:8191"
+    restart: unless-stopped
+
+  # Watchtower is going to keep our instances updated
+  watchtower:
+    image: docker.io/nickfedor/watchtower
+    container_name: watchtower
+    environment:
+      - WATCHTOWER_CLEANUP=true
+    volumes:
+      - /mnt/wsl/podman-sockets/podman-machine-default/podman-user.sock:/var/run/docker.sock
+    restart: unless-stopped
